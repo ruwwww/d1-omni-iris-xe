@@ -28,3 +28,6 @@ ENV/
 Thumbs.db
 Desktop.ini
 .DS_Store
+*.log
+kernel.errors.txt
+
