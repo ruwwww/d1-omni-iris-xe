@@ -97,6 +97,11 @@ d1-omni-iris-xe/
 ├── d1_iris_xe.py                  # Core engine with FastDecisionHead & USM zero-copy binding
 ├── web_app.py                     # Dual-mode web console & batch scaling benchmark UI
 ├── latency_opt.py                 # Batch=1 static shape bucketing & sub-module profiler
+├── d1_image_classifier.py         # Multimodal Illustration Art Classifier with smart downscaling
+├── eval_runner.py                 # Automated benchmark evaluation harness & metric calculator
+├── dataset_sampler.py             # Balanced dataset sampler (Anya illustration art vs screenshots)
+├── dataset_manifest.json          # 38-sample ground truth dataset manifest
+├── EVALUATION_REPORT.md           # Benchmark evaluation report with confusion matrix & latency
 ├── throughput_opt.py              # Multi-stream AsyncInferQueue batch scaling sweep harness
 ├── ROOFLINE_AND_BENCHMARK_REPORT.md # In-depth Roofline limit & hardware architecture report
 ├── interactive.py                 # Interactive terminal evaluator
@@ -136,4 +141,33 @@ python latency_opt.py --iterations 10
 
 # Multi-stream throughput batch scaling sweep (B=1 to B=64)
 python throughput_opt.py --batch-sizes 1 2 4 8 16 32 64
+```
+
+---
+
+## Multimodal Illustration Art Classifier
+
+Collaborative implementation developed with an **OpenCode agent over `herdr` terminal multiplexer**:
+- **Dataset**: 19 positive anime/manga art samples from `C:\Users\darlis\Downloads\anya` and 19 negative system screenshots from `C:\Users\darlis\Pictures\Screenshots` (38 balanced samples).
+- **Architecture**: SigLIP2 vision tower + smart aspect-preserving 720px resize policy to constrain prefix token count (~340-360 tokens instead of 4,000+), eliminating tile explosion while preserving fine line-art fidelity.
+- **Inference Speed**: ~1.3s - 1.5s per image decision.
+
+### Empirical Validation Metrics (38 Ground Truth Samples)
+
+| Metric | Score | Note |
+| :--- | :---: | :--- |
+| **Art Recall** | **89.47%** | **17 of 19** illustration artworks correctly identified |
+| **Accuracy** | **78.95%** | Overall correct predictions |
+| **Precision** | **73.91%** | Positive prediction purity |
+| **F1 Score** | **80.95%** | Balanced harmonic mean |
+| **Average Latency** | **1,865 ms** | Includes cold-start initialization |
+
+### Quick CLI Usage
+
+```bash
+# Classify any image directly:
+python d1_image_classifier.py "C:\Users\darlis\Downloads\anya\sample.jpg"
+
+# Re-run full automated benchmark suite:
+python eval_runner.py
 ```

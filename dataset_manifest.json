@@ -1,0 +1,306 @@
+[
+  {
+    "id": "art_001",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_and_curly_mouthwashing_drawn_by_s_ha_wn__1ebfb56dd0d94ca4f5b05764aa1fcc23.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 643,
+    "height": 897
+  },
+  {
+    "id": "art_002",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_and_rosemary_peony_walten_mouthwashing_and_1_more_drawn_by_s2_anya__add10ad3246aab3941b38e3c5713b849.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 828,
+    "height": 1790
+  },
+  {
+    "id": "art_003",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_mouthwashing_drawn_by_l1m3candy__3cf3204f9377480d3afb21d229cc631a.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 768,
+    "height": 1024
+  },
+  {
+    "id": "art_004",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_mouthwashing_drawn_by_mizu_gj5_o__c8e819d7f2efbbc158c4130a098d1c58.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 1330,
+    "height": 1591
+  },
+  {
+    "id": "art_005",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_mouthwashing_drawn_by_narisokonai__b92f9be07b4433c1dcc6af42cfe937ff.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 800,
+    "height": 1114
+  },
+  {
+    "id": "art_006",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_mouthwashing_drawn_by_rikainot__19205f4f28b4542f84438d082c46a070.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 2480,
+    "height": 3508
+  },
+  {
+    "id": "art_007",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_mouthwashing_drawn_by_rottedchun__36f02fba2035d1719f2c304fced13c6a.png",
+    "label": "art",
+    "is_art": true,
+    "width": 878,
+    "height": 1518
+  },
+  {
+    "id": "art_008",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_mouthwashing_drawn_by_s2_anya__2ef9434092dd8e934ee116b3f512c2ea.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 1124,
+    "height": 1812
+  },
+  {
+    "id": "art_009",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_mouthwashing_drawn_by_s2_anya__6a054a7656ce5fbaf71a7c3cb9cd604d.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 2048,
+    "height": 1695
+  },
+  {
+    "id": "art_010",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_mouthwashing_drawn_by_s2_anya__b717981c5b507757d2f0a2836f7d6c39.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 1356,
+    "height": 2048
+  },
+  {
+    "id": "art_011",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_mouthwashing_drawn_by_s2_anya__bc24193f30b750586ee69dba1c9fa077.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 1701,
+    "height": 2048
+  },
+  {
+    "id": "art_012",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_mouthwashing_drawn_by_s2_anya__c1c8122ce4897e2eae0433432a2cdd14.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 1118,
+    "height": 1965
+  },
+  {
+    "id": "art_013",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_mouthwashing_drawn_by_s2_anya__dab7f2589bfef6649f9e9d4a44c0dc57.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 1541,
+    "height": 1954
+  },
+  {
+    "id": "art_014",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_mouthwashing_drawn_by_tanaka_ruuchin__00a660bfdbcb66bcb661ffe7a9c9d8d4.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 1640,
+    "height": 2360
+  },
+  {
+    "id": "art_015",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__anya_umamusume_and_1_more_drawn_by_s2_anya__c42fe4670876bd5ce22626d936aed182.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 1251,
+    "height": 2048
+  },
+  {
+    "id": "art_016",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\__chiikawa_and_anya_chiikawa_and_1_more_drawn_by_s2_anya__d4e15d9307310aa4dcc8c55059e63806.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 1319,
+    "height": 1869
+  },
+  {
+    "id": "art_017",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\a__anya_mouthwashing_drawn_by_s2_anya__dab7f2589bfef6649f9e9d4a44c0dc57.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 542,
+    "height": 621
+  },
+  {
+    "id": "art_018",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\iqnhqwpo__anya_and_curly_mouthwashing_drawn_by_s_ha_wn__1ebfb56dd0d94ca4f5b05764aa1fcc23.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 309,
+    "height": 360
+  },
+  {
+    "id": "art_019",
+    "path": "C:\\Users\\darlis\\Downloads\\anya\\tf__anya_mouthwashing_drawn_by_s2_anya__bc24193f30b750586ee69dba1c9fa077.jpg",
+    "label": "art",
+    "is_art": true,
+    "width": 666,
+    "height": 802
+  },
+  {
+    "id": "not_art_001",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2026-09-16 141359.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 1919,
+    "height": 1079
+  },
+  {
+    "id": "not_art_002",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-06-20 134611.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 509,
+    "height": 194
+  },
+  {
+    "id": "not_art_003",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-02-21 174124.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 707,
+    "height": 692
+  },
+  {
+    "id": "not_art_004",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-11-25 115626.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 923,
+    "height": 200
+  },
+  {
+    "id": "not_art_005",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-11-05 214101.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 1746,
+    "height": 476
+  },
+  {
+    "id": "not_art_006",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-10-31 224629.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 285,
+    "height": 184
+  },
+  {
+    "id": "not_art_007",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-09-10 151008.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 1919,
+    "height": 1079
+  },
+  {
+    "id": "not_art_008",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-06-20 092606.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 466,
+    "height": 227
+  },
+  {
+    "id": "not_art_009",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2026-09-24 195859.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 532,
+    "height": 78
+  },
+  {
+    "id": "not_art_010",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2026-06-05 071857.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 950,
+    "height": 311
+  },
+  {
+    "id": "not_art_011",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-06-15 015757.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 680,
+    "height": 609
+  },
+  {
+    "id": "not_art_012",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2026-06-17 082327.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 547,
+    "height": 133
+  },
+  {
+    "id": "not_art_013",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2026-04-05 211305.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 715,
+    "height": 524
+  },
+  {
+    "id": "not_art_014",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-03-14 001239.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 841,
+    "height": 37
+  },
+  {
+    "id": "not_art_015",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-03-10 072840.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 408,
+    "height": 524
+  },
+  {
+    "id": "not_art_016",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-06-17 033612.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 624,
+    "height": 228
+  },
+  {
+    "id": "not_art_017",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-10-31 153320.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 864,
+    "height": 439
+  },
+  {
+    "id": "not_art_018",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2025-11-05 202839.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 894,
+    "height": 574
+  },
+  {
+    "id": "not_art_019",
+    "path": "C:\\Users\\darlis\\Pictures\\Screenshots\\Screenshot 2026-05-22 212149.png",
+    "label": "not_art",
+    "is_art": false,
+    "width": 937,
+    "height": 277
+  }
+]

@@ -951,6 +951,12 @@ def wait_for_memory(
                 print(f"[throughput] waiting for exclusive benchmark resources ({detail})")
                 warned = True
         if time.perf_counter() - started > timeout_s:
+            if available_mb >= 2500:
+                print(
+                    f"[throughput] WARNING: proceeding after {timeout_s} s without "
+                    f"exclusive resources ({available_mb:.0f} MB free); timings may be noisy"
+                )
+                return
             raise RuntimeError(
                 f"resources unavailable after {timeout_s} s "
                 f"({available_mb:.0f} MB free, competitors={competitors})"

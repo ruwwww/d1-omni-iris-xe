@@ -10,12 +10,18 @@ import os
 import sys
 import time
 import json
+import base64
+import io
+from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import urllib.parse
+from PIL import Image
 from d1_iris_xe import D1OmniIrisXe
+from d1_image_classifier import D1ImageClassifier
 
 PORT = 7860
 engine = None
+classifier = None
 
 HTML_PAGE = """<!DOCTYPE html>
 <html lang="en">
@@ -380,6 +386,7 @@ HTML_PAGE = """<!DOCTYPE html>
     <div class="tabs-bar">
       <button class="tab-btn active" id="tabSingle" onclick="switchTab('single')">⚡ Interactive Decision Console</button>
       <button class="tab-btn" id="tabBatch" onclick="switchTab('batch')">🚀 Batch Scaling & Roofline Benchmark</button>
+      <button class="tab-btn" id="tabClassifier" onclick="switchTab('classifier')">🎨 Illustration Art Classifier</button>
     </div>
 
     <!-- VIEW 1: Single Decision Console -->
@@ -517,16 +524,147 @@ HTML_PAGE = """<!DOCTYPE html>
         </table>
       </div>
     </div>
+
+    <!-- VIEW 3: Illustration Art Classifier -->
+    <div id="viewClassifier" class="grid" style="display: none;">
+      <!-- Left: Image Input & Samples -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">1. Select or Upload Image</span>
+          <span style="font-size: 0.75rem; color: var(--intel-cyan);">Multimodal SigLIP2 Vision</span>
+        </div>
+
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 12px;">
+          Select a sample from Anya art or desktop screenshots, or upload any custom image to classify.
+        </p>
+
+        <div class="card-header" style="margin-bottom: 6px;">
+          <span class="card-title" style="font-size: 0.78rem;">Quick Benchmark Samples:</span>
+        </div>
+        <div class="presets">
+          <button class="btn-preset" onclick="loadSample('art_001')">🖼️ Anya Art #1</button>
+          <button class="btn-preset" onclick="loadSample('art_002')">🖼️ Anya Art #2</button>
+          <button class="btn-preset" onclick="loadSample('art_004')">🖼️ Anya Art #4</button>
+          <button class="btn-preset" onclick="loadSample('not_art_001')">🖥️ Desktop Screenshot #1</button>
+          <button class="btn-preset" onclick="loadSample('not_art_003')">🖥️ Desktop Screenshot #3</button>
+          <button class="btn-preset" onclick="loadSample('not_art_004')">🖥️ Code Screenshot #4</button>
+        </div>
+
+        <div style="margin: 12px 0;">
+          <label style="display: block; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">
+            Or Upload Custom Image:
+          </label>
+          <input type="file" id="imageFileInput" accept="image/*" onchange="handleFileUpload(event)" style="display: none;">
+          <button class="btn-preset" onclick="document.getElementById('imageFileInput').click()" style="width: 100%; padding: 8px; font-weight: 600; border-style: dashed; border-color: var(--intel-cyan); background: rgba(0, 199, 253, 0.05); text-align: center;">
+            📁 Click to Browse or Drag Image Here
+          </button>
+        </div>
+
+        <div style="margin-top: 10px; text-align: center;">
+          <div style="width: 100%; height: 230px; background: #0b0f19; border: 1px solid #1f2937; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;" id="imagePreviewContainer">
+            <img id="imagePreview" src="" alt="Selected image" style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;">
+            <span id="imagePlaceholder" style="color: var(--text-muted); font-size: 0.85rem;">No image selected</span>
+          </div>
+          <div id="imageInfo" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">Sample: none selected</div>
+        </div>
+
+        <button class="btn-run" id="btnRunClassify" onclick="runImageClassification()" style="margin-top: 14px;">
+          <span id="classifyBtnIcon">🎨</span>
+          <span id="classifyBtnText">Classify Image Medium with D1-Omni</span>
+        </button>
+      </div>
+
+      <!-- Right: Classification Results & Benchmark Telemetry -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Classification Verdict & Telemetry</span>
+          <span id="classifyStatusTag" style="font-size: 0.75rem; color: var(--text-muted);">Ready</span>
+        </div>
+
+        <!-- Big Verdict Card -->
+        <div id="verdictBox" style="padding: 16px; border-radius: 10px; background: #1e293b; border: 1px solid #334155; margin-bottom: 14px; text-align: center; transition: all 0.3s;">
+          <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">Primary Classification</div>
+          <div id="verdictLabel" style="font-size: 1.3rem; font-weight: 700; color: #cbd5e1;">Awaiting Image Input</div>
+          <div id="verdictSub" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">Select or upload an image to evaluate</div>
+        </div>
+
+        <div class="stats-bar">
+          <div class="stat-pill">
+            <div class="stat-label">Inference Time</div>
+            <div class="stat-val" id="imgValLatency">-- ms</div>
+          </div>
+          <div class="stat-pill">
+            <div class="stat-label">Tokens Read</div>
+            <div class="stat-val" id="imgValTokens">-- toks</div>
+          </div>
+          <div class="stat-pill">
+            <div class="stat-label">Confidence</div>
+            <div class="stat-val" id="imgValConf" style="color: #10b981;">-- %</div>
+          </div>
+        </div>
+
+        <!-- Medium Breakdown -->
+        <div class="card-header" style="margin-top: 14px; margin-bottom: 8px;">
+          <span class="card-title" style="font-size: 0.8rem;">Medium Probability Distribution:</span>
+        </div>
+        <div id="probMetersContainer" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+          <div class="prob-row">
+            <div class="prob-label"><span>🎨 Illustration Art</span><span id="probValArt">--%</span></div>
+            <div class="prob-track"><div class="prob-fill" id="probBarArt" style="width: 0%; background: linear-gradient(90deg, #8b5cf6, #ec4899);"></div></div>
+          </div>
+          <div class="prob-row">
+            <div class="prob-label"><span>🖥️ Screenshot / UI</span><span id="probValScreen">--%</span></div>
+            <div class="prob-track"><div class="prob-fill" id="probBarScreen" style="width: 0%; background: linear-gradient(90deg, #0284c7, #38bdf8);"></div></div>
+          </div>
+          <div class="prob-row">
+            <div class="prob-label"><span>📊 Diagram / Text</span><span id="probValDiag">--%</span></div>
+            <div class="prob-track"><div class="prob-fill" id="probBarDiag" style="width: 0%; background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div></div>
+          </div>
+          <div class="prob-row">
+            <div class="prob-label"><span>📷 Real Photograph</span><span id="probValPhoto">--%</span></div>
+            <div class="prob-track"><div class="prob-fill" id="probBarPhoto" style="width: 0%; background: linear-gradient(90deg, #10b981, #34d399);"></div></div>
+          </div>
+        </div>
+
+        <!-- Evaluation Dataset Summary Box -->
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid #1e293b; border-radius: 8px; padding: 12px;">
+          <div style="font-size: 0.72rem; font-weight: 600; text-transform: uppercase; color: var(--intel-cyan); margin-bottom: 6px;">
+            Herdr OpenCode Agent Benchmark Summary (38 Samples)
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center;">
+            <div style="background: #111827; padding: 6px; border-radius: 6px;">
+              <div style="font-size: 0.65rem; color: var(--text-muted);">Accuracy</div>
+              <div style="font-size: 0.9rem; font-weight: 700; color: #f3f4f6;">78.95%</div>
+            </div>
+            <div style="background: #111827; padding: 6px; border-radius: 6px;">
+              <div style="font-size: 0.65rem; color: var(--text-muted);">Art Recall</div>
+              <div style="font-size: 0.9rem; font-weight: 700; color: #10b981;">89.47%</div>
+            </div>
+            <div style="background: #111827; padding: 6px; border-radius: 6px;">
+              <div style="font-size: 0.65rem; color: var(--text-muted);">F1 Score</div>
+              <div style="font-size: 0.9rem; font-weight: 700; color: #8b5cf6;">80.95%</div>
+            </div>
+            <div style="background: #111827; padding: 6px; border-radius: 6px;">
+              <div style="font-size: 0.65rem; color: var(--text-muted);">Confusion</div>
+              <div style="font-size: 0.8rem; font-weight: 600; color: #38bdf8;">17 TP / 2 FN</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
     let selectedBatchSize = 1;
+    let currentImagePayload = { sample_id: 'art_001' };
 
     function switchTab(tab) {
       document.getElementById('tabSingle').classList.toggle('active', tab === 'single');
       document.getElementById('tabBatch').classList.toggle('active', tab === 'batch');
+      document.getElementById('tabClassifier').classList.toggle('active', tab === 'classifier');
       document.getElementById('viewSingle').style.display = tab === 'single' ? 'grid' : 'none';
       document.getElementById('viewBatch').style.display = tab === 'batch' ? 'block' : 'none';
+      document.getElementById('viewClassifier').style.display = tab === 'classifier' ? 'grid' : 'none';
     }
 
     function selectBatch(size, btn) {
@@ -789,30 +927,219 @@ HTML_PAGE = """<!DOCTYPE html>
         container.appendChild(card);
       }
     }
+
+    // --- Image Classifier Scripting ---
+    function loadSample(sampleId) {
+      currentImagePayload = { sample_id: sampleId };
+      const img = document.getElementById('imagePreview');
+      const placeholder = document.getElementById('imagePlaceholder');
+      const info = document.getElementById('imageInfo');
+
+      img.src = '/api/sample_image?id=' + encodeURIComponent(sampleId);
+      img.style.display = 'block';
+      placeholder.style.display = 'none';
+      info.textContent = 'Selected Sample: ' + sampleId;
+      resetClassifierMeters();
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        currentImagePayload = { image_base64: e.target.result };
+        const img = document.getElementById('imagePreview');
+        const placeholder = document.getElementById('imagePlaceholder');
+        const info = document.getElementById('imageInfo');
+
+        img.src = e.target.result;
+        img.style.display = 'block';
+        placeholder.style.display = 'none';
+        info.textContent = 'Custom Upload: ' + file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+        resetClassifierMeters();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetClassifierMeters() {
+      document.getElementById('verdictBox').style.background = '#1e293b';
+      document.getElementById('verdictBox').style.borderColor = '#334155';
+      document.getElementById('verdictLabel').textContent = 'Ready for Classification';
+      document.getElementById('verdictLabel').style.color = '#cbd5e1';
+      document.getElementById('verdictSub').textContent = 'Click button below to evaluate image';
+      document.getElementById('imgValLatency').textContent = '-- ms';
+      document.getElementById('imgValTokens').textContent = '-- toks';
+      document.getElementById('imgValConf').textContent = '-- %';
+      document.getElementById('probBarArt').style.width = '0%';
+      document.getElementById('probBarScreen').style.width = '0%';
+      document.getElementById('probBarDiag').style.width = '0%';
+      document.getElementById('probBarPhoto').style.width = '0%';
+      document.getElementById('probValArt').textContent = '--%';
+      document.getElementById('probValScreen').textContent = '--%';
+      document.getElementById('probValDiag').textContent = '--%';
+      document.getElementById('probValPhoto').textContent = '--%';
+    }
+
+    async function runImageClassification() {
+      const btn = document.getElementById('btnRunClassify');
+      const icon = document.getElementById('classifyBtnIcon');
+      const text = document.getElementById('classifyBtnText');
+      const status = document.getElementById('classifyStatusTag');
+
+      btn.disabled = true;
+      icon.innerHTML = '<span class="loading-spinner"></span>';
+      text.textContent = 'Evaluating Multimodal Decision...';
+      status.textContent = 'Inferencing...';
+
+      try {
+        const resp = await fetch('/api/classify_image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(currentImagePayload)
+        });
+        const res = await resp.json();
+
+        // Update Verdict Box
+        const verdictBox = document.getElementById('verdictBox');
+        const verdictLabel = document.getElementById('verdictLabel');
+        const verdictSub = document.getElementById('verdictSub');
+
+        if (res.is_art) {
+          verdictBox.style.background = 'linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(236, 72, 153, 0.2))';
+          verdictBox.style.borderColor = '#a855f7';
+          verdictLabel.textContent = '🎨 ILLUSTRATION ART';
+          verdictLabel.style.color = '#e879f9';
+          verdictSub.textContent = `Identified as artwork / drawing with ${(res.confidence * 100).toFixed(1)}% confidence`;
+        } else {
+          verdictBox.style.background = 'linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(245, 158, 11, 0.15))';
+          verdictBox.style.borderColor = '#0284c7';
+          verdictLabel.textContent = '🖥️ NOT ART (' + res.medium.toUpperCase() + ')';
+          verdictLabel.style.color = '#38bdf8';
+          verdictSub.textContent = `Identified as non-art capture with ${(res.confidence * 100).toFixed(1)}% confidence`;
+        }
+
+        // Stats
+        document.getElementById('imgValLatency').textContent = res.latency_ms + ' ms';
+        document.getElementById('imgValTokens').textContent = res.tokens + ' toks';
+        document.getElementById('imgValConf').textContent = (res.confidence * 100).toFixed(1) + '%';
+
+        // Probability bars
+        const probs = res.probabilities || {};
+        const artP = Math.round((probs.illustration_art || 0) * 100);
+        const scrP = Math.round((probs.screenshot || 0) * 100);
+        const diaP = Math.round((probs.diagram || 0) * 100);
+        const phoP = Math.round((probs.photograph || 0) * 100);
+
+        document.getElementById('probBarArt').style.width = artP + '%';
+        document.getElementById('probValArt').textContent = artP + '%';
+        document.getElementById('probBarScreen').style.width = scrP + '%';
+        document.getElementById('probValScreen').textContent = scrP + '%';
+        document.getElementById('probBarDiag').style.width = diaP + '%';
+        document.getElementById('probValDiag').textContent = diaP + '%';
+        document.getElementById('probBarPhoto').style.width = phoP + '%';
+        document.getElementById('probValPhoto').textContent = phoP + '%';
+
+        status.textContent = 'Completed in ' + res.latency_ms + 'ms';
+      } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+        alert('Image classification error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        icon.textContent = '🎨';
+        text.textContent = 'Classify Image Medium with D1-Omni';
+      }
+    }
   </script>
 </body>
 </html>
 """
 
 
+def get_classifier():
+    global classifier, engine
+    if classifier is None:
+        if engine is not None:
+            classifier = D1ImageClassifier(engine=engine)
+        else:
+            classifier = D1ImageClassifier(device="CPU")
+    return classifier
+
+
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == "/" or self.path == "/index.html":
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == "/" or parsed.path == "/index.html":
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             self.wfile.write(HTML_PAGE.encode("utf-8"))
-        elif self.path == "/health":
+        elif parsed.path == "/health":
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({"status": "ok", "device": "GPU"}).encode("utf-8"))
+        elif parsed.path == "/api/sample_image":
+            qs = urllib.parse.parse_qs(parsed.query)
+            sample_id = qs.get("id", ["art_001"])[0]
+            manifest_file = Path("dataset_manifest.json")
+            if manifest_file.exists():
+                manifest = json.load(manifest_file.open("r", encoding="utf-8"))
+                item = next((x for x in manifest if x["id"] == sample_id), None)
+                if item and os.path.exists(item["path"]):
+                    ext = Path(item["path"]).suffix.lower()
+                    mime = "image/png" if ext == ".png" else "image/jpeg"
+                    with open(item["path"], "rb") as f:
+                        data = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-Type", mime)
+                    self.send_header("Content-Length", str(len(data)))
+                    self.end_headers()
+                    self.wfile.write(data)
+                    return
+            self.send_response(404)
+            self.end_headers()
         else:
             self.send_response(404)
             self.end_headers()
 
     def do_POST(self):
-        if self.path == "/api/evaluate":
+        if self.path == "/api/classify_image":
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length).decode("utf-8")
+            data = json.loads(body)
+
+            target_img = None
+            if "sample_id" in data:
+                manifest_file = Path("dataset_manifest.json")
+                if manifest_file.exists():
+                    manifest = json.load(manifest_file.open("r", encoding="utf-8"))
+                    item = next((x for x in manifest if x["id"] == data["sample_id"]), None)
+                    if item and os.path.exists(item["path"]):
+                        target_img = Image.open(item["path"]).convert("RGB")
+            elif "image_base64" in data:
+                b64_str = data["image_base64"]
+                if "," in b64_str:
+                    b64_str = b64_str.split(",", 1)[1]
+                img_bytes = base64.b64decode(b64_str)
+                target_img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+
+            if target_img is None:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "No valid image provided"}).encode("utf-8"))
+                return
+
+            clf = get_classifier()
+            result = clf.classify(target_img)
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(result).encode("utf-8"))
+
+        elif self.path == "/api/evaluate":
             content_length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_length).decode("utf-8")
             data = json.loads(body)

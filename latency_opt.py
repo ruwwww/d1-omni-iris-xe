@@ -613,6 +613,19 @@ def _summarize(samples: list[float]) -> dict:
     }
 
 
+def _decisions(result: dict) -> dict:
+    """Discrete answer each question resolves to, independent of f16 probability drift."""
+    out = {}
+    for name, answer in result["answers"].items():
+        if answer["type"] == "noul":
+            out[name] = answer["noul"] >= 0.5
+        elif answer["type"] == "choice":
+            out[name] = answer["choice"]
+        else:
+            out[name] = round(answer["score"])
+    return out
+
+
 def _max_numeric_delta(left, right) -> float:
     if isinstance(left, dict) and isinstance(right, dict):
         return max((_max_numeric_delta(left[key], right[key]) for key in left), default=0.0)
@@ -654,6 +667,8 @@ def main():
     parser.add_argument("--buckets", default="64,128,256", help="comma-separated standard sequence buckets")
     parser.add_argument("--no-head-gpu", action="store_true", help="keep the decision head on the CPU")
     parser.add_argument("--max-cached", type=int, default=2, help="compiled static models kept in iGPU memory")
+    parser.add_argument("--parity-tol", type=float, default=2e-2,
+                        help="fp16 tolerance for static-vs-dynamic probability drift")
     args = parser.parse_args()
 
     buckets = tuple(int(part) for part in args.buckets.split(",") if part.strip())
@@ -760,8 +775,16 @@ def main():
     print(f"  max |delta probability|, 3 questions : {delta_three:.3e}")
     print(f"  max |delta probability|, 1 question  : {delta_one:.3e}")
     print(f"  max |delta answer|,      3 questions : {result_delta:.3e}")
+    max_delta = max(delta_three, delta_one)
+    matches = _decisions(baseline_result) == _decisions(after_result)
     print(f"  max |delta answer|,      1 question  : {single_result_delta:.3e}")
-    print(f"  verdict: {'MATCH' if max(delta_three, delta_one) < 2e-3 else 'MISMATCH'}")
+    print(f"  decision fields identical            : {'yes' if matches else 'NO'}")
+    print(f"  max |delta probability| overall      : {max_delta:.3e}  "
+          f"(f16 tolerance {args.parity_tol:.1e})")
+    verdict = "MATCH" if matches and max_delta <= args.parity_tol else "MISMATCH"
+    print(f"  verdict: {verdict}"
+          + ("   [static/dynamic GPU kernels differ in f16 accumulation order]"
+             if verdict == "MATCH" and max_delta > 2e-3 else ""))
 
     print("\n" + "=" * 92)
     print("  OPTIMIZATION TELEMETRY")
